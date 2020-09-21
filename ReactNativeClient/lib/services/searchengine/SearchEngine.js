@@ -394,19 +394,23 @@ class SearchEngine {
 			}
 		}
 
+		const fellThrough = new Set();
 		rows.sort((a, b) => {
 			if (a.fuzziness < b.fuzziness) return -1;
 			if (a.fuzziness > b.fuzziness) return +1;
 			if (a.fields.includes('title') && !b.fields.includes('title')) return -1;
 			if (!a.fields.includes('title') && b.fields.includes('title')) return +1;
-			if (a.weight < b.weight) return +1;
-			if (a.weight > b.weight) return -1;
+			if (a.weight < b.weight && b.weight / a.weight > 4) return +1;
+			if (a.weight > b.weight && a.weight / b.weight > 4) return -1;
 			if (a.is_todo && a.todo_completed) return +1;
 			if (b.is_todo && b.todo_completed) return -1;
+			fellThrough.add(a.id);
+			fellThrough.add(b.id);
 			if (a.user_updated_time < b.user_updated_time) return +1;
 			if (a.user_updated_time > b.user_updated_time) return -1;
 			return 0;
 		});
+		console.log('Term: . Checked user_updated_time in:', fellThrough.size, 'out of:', rows.length, 'search results');
 	}
 
 	// https://stackoverflow.com/a/13818704/561309
